@@ -32,9 +32,7 @@ jobs:
       - name: Run flake8
         run: |
           flake8 . \
-            --exclude=tests/,__pycache__/ \
-            --max-line-length=120 \
-            --ignore=W503 \
+            --config=.flake8 \
             --count \
             --statistics
 
@@ -89,15 +87,15 @@ jobs:
             --name vulnerax_test \
             -p 8000:8000 \
             vulnerax:${{ github.sha }}
-          sleep 5
+          sleep 8
           curl --fail http://localhost:8000/api/health || exit 1
           docker stop vulnerax_test
 
   # ─────────────────────────────────────────
-  # STAGE 4: DEPLOY (Koyeb)
+  # STAGE 4: DEPLOY (Hugging Face Spaces)
   # ─────────────────────────────────────────
   deploy:
-    name: Deploy to Koyeb
+    name: Deploy to Hugging Face Spaces
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -105,17 +103,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
 
-      - name: Install Koyeb CLI
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | bash
-          echo "$HOME/.koyeb/bin" >> $GITHUB_PATH
-
-      - name: Deploy to Koyeb
+      - name: Push to Hugging Face Space
         env:
-          KOYEB_TOKEN: ${{ secrets.KOYEB_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          koyeb service redeploy vulnerax/vulnerax --token $KOYEB_TOKEN
+          git config --global user.email "misbah@vulnerax.com"
+          git config --global user.name "MisbahSangi"
+          git push https://MisbahSangi:$HF_TOKEN@huggingface.co/spaces/MisbahSangi/VulneraX main --force
 
       - name: Deployment Complete
-        run: echo "Koyeb deployment triggered successfully!"
+        run: echo "Hugging Face Spaces deployment triggered!"
