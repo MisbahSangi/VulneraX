@@ -1,0 +1,126 @@
+========================================================
+VulneraX — AI Prompts Used (Lab Assignment 4)
+CSE325 Software Construction & Development
+Student: Misbah Abdullah | CIIT/FA23-BSE-064/SWL
+========================================================
+
+All prompts were submitted to Claude (claude.ai) during development.
+
+--------------------------------------------------------
+PROMPT 1: AI Code Generation — New Function
+--------------------------------------------------------
+Tool: Claude (claude.ai)
+Used for: Generating get_scan_summary_stats() helper function
+
+Prompt:
+"Generate a Python helper function named get_scan_summary_stats() for a
+FastAPI web vulnerability scanner. It should read from two global dicts:
+LATEST_RESULT (which has 'findings', 'target', 'summary' keys) and SCAN_STATE
+(which has 'status'). It should count findings by severity (critical, high,
+medium, low), return the app uptime in seconds using time.time(), and return
+everything as a typed Dict[str, Any]. Make it production-ready with a docstring."
+
+Result: Function added to main.py (lines marked with # AI-GENERATED comment)
+
+--------------------------------------------------------
+PROMPT 2: AI Code Generation — New Endpoint
+--------------------------------------------------------
+Tool: Claude (claude.ai)
+Used for: Generating /api/health GET endpoint
+
+Prompt:
+"Add a GET /api/health endpoint to this FastAPI application that returns
+application health status in JSON format. It should include: app name,
+version string, current scan status from SCAN_STATE, last scanned target,
+total findings count, severity breakdown (critical/high/medium/low counts),
+and uptime in seconds. Call get_scan_summary_stats() to fetch the stats.
+Make it production-ready with a proper docstring."
+
+Result: @app.get("/api/health") endpoint added to main.py
+
+--------------------------------------------------------
+PROMPT 3: AI Code Refactoring
+--------------------------------------------------------
+Tool: Claude (claude.ai)
+Used for: Refactoring load_default_checks() in main.py
+
+Original issues:
+- No return type hint
+- Silent exception swallowing with bare `except: pass`
+- No docstring explaining the function's purpose
+- Inline config mutation was hard to follow
+
+Prompt:
+"Refactor this Python function load_default_checks() for better readability,
+error handling, and maintainability. Add a return type annotation, add a
+clear docstring, make the exception handling more explicit, and add inline
+comments explaining the config-loading logic. Keep the same behavior."
+
+Result: Function now has type hint `-> dict`, docstring, and improved
+exception handling. Changes visible in main.py.
+
+--------------------------------------------------------
+PROMPT 4: AI Unit Test Generation
+--------------------------------------------------------
+Tool: Claude (claude.ai)
+Used for: Writing pytest unit tests for 7 functions
+
+Prompt:
+"Write comprehensive pytest unit tests for the following Python functions
+in a FastAPI web vulnerability scanner project:
+
+1. is_internal_host(hostname) — returns True for localhost/private IPs
+2. validate_target_url(raw_url) — validates and sanitizes URLs, returns (url, error)
+3. get_scan_summary_stats() — reads global state, returns severity counts and uptime
+4. _timed_out(start_time) — returns True if scan exceeded MAX_SCAN_TIME
+5. get_remediation(vuln_type) — returns remediation dict with description/severity
+6. scan_directory_listing(url, findings, log) — checks for directory listing markers
+7. scan_sensitive_info(url, findings, log) — checks for sensitive keywords in response
+
+For each function, write tests covering:
+- Normal use cases (expected valid input)
+- Edge cases (empty string, boundary values, case sensitivity)
+- Invalid input (None, wrong types, blocked values)
+
+Use pytest-mock to patch requests.get for network functions.
+Organize tests into classes per function. Add a docstring to each test."
+
+Result: 35 tests across 7 test classes in tests/test_vulnerax.py
+
+--------------------------------------------------------
+PROMPT 5: CI/CD Pipeline Generation
+--------------------------------------------------------
+Tool: Claude (claude.ai)
+Used for: Writing GitHub Actions workflow
+
+Prompt:
+"Write a complete GitHub Actions CI/CD pipeline YAML file for a Python FastAPI
+project. The pipeline must have exactly 4 stages that run in order:
+1. Lint — using flake8, max line length 120, exclude tests folder
+2. Test — using pytest, run from project_root/, verbose output
+3. Build — build a Docker image, run a container, verify /api/health endpoint
+   responds with HTTP 200
+4. Deploy — trigger a Render.com deploy webhook stored in GitHub Secrets as
+   RENDER_DEPLOY_HOOK_URL. Only deploy on push to main branch.
+Use modern action versions (actions/checkout@v4, actions/setup-python@v5).
+Add clear stage names and comments."
+
+Result: .github/workflows/ci-cd.yml
+
+--------------------------------------------------------
+PROMPT 6: Dockerfile Generation
+--------------------------------------------------------
+Tool: Claude (claude.ai)
+Used for: Creating production Dockerfile
+
+Prompt:
+"Write a minimal production Dockerfile for a FastAPI app using Python 3.11-slim.
+It should copy requirements.txt, install dependencies with --no-cache-dir,
+copy the project files, create a reports/ directory, expose port 8000, and
+start with uvicorn main:app --host 0.0.0.0 --port 8000."
+
+Result: Dockerfile in project_root/
+
+========================================================
+End of AI Prompts Log
+========================================================

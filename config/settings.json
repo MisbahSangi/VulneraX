@@ -1,0 +1,26 @@
+{
+  "crawler": {
+    "max_pages": 30,
+    "max_depth": 3,
+    "request_timeout": 10
+  },
+  "scan": {
+    "max_scan_time_seconds": 300
+  },
+  "checks": {
+    "xss": true,
+    "sqli": true,
+    "security_headers": true,
+    "csrf": true,
+    "directory_listing": true,
+    "weak_tls": true,
+    "open_redirect": true,
+    "sensitive_info": true,
+    "clickjacking": true,
+    "cookie_security": true
+  },
+"by_type_and_severity": {
+    "XSS": {"critical": 0, "high": 1, "medium": 2, "low":  0, "info": 0},
+    "SQL Injection": {"critical":  1, "high": 0, "medium": 0, "low": 0, "info":  0}
+  }
+}

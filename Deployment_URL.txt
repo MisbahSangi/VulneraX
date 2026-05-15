@@ -1,0 +1,9 @@
+Deployment URL: https://vulnerax.onrender.com
+
+Platform: Render (https://render.com)
+Service Type: Web Service (Python / FastAPI)
+Auto-deploy: Enabled on push to main branch via GitHub Actions
+
+Health Check Endpoint: https://vulnerax.onrender.com/api/health
+
+Note: Fill in the actual Render URL after completing deployment setup.

@@ -1,0 +1,113 @@
+name: VulneraX CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+
+  # ─────────────────────────────────────────
+  # STAGE 1: LINT
+  # ─────────────────────────────────────────
+  lint:
+    name: Lint (flake8)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linting dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Run flake8
+        # E501 = line too long (relaxed to 120), W503 = line break before operator
+        run: |
+          flake8 project_root/ \
+            --exclude=project_root/tests/ \
+            --max-line-length=120 \
+            --ignore=W503 \
+            --count \
+            --statistics
+
+  # ─────────────────────────────────────────
+  # STAGE 2: TEST
+  # ─────────────────────────────────────────
+  test:
+    name: Unit Tests (pytest)
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r project_root/requirements.txt
+
+      - name: Run pytest
+        working-directory: project_root
+        run: |
+          pytest tests/ -v --tb=short
+
+  # ─────────────────────────────────────────
+  # STAGE 3: BUILD (Docker)
+  # ─────────────────────────────────────────
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t vulnerax:${{ github.sha }} ./project_root
+
+      - name: Verify image runs
+        run: |
+          docker run --rm -d \
+            --name vulnerax_test \
+            -p 8000:8000 \
+            vulnerax:${{ github.sha }}
+          sleep 5
+          curl --fail http://localhost:8000/api/health || exit 1
+          docker stop vulnerax_test
+
+  # ─────────────────────────────────────────
+  # STAGE 4: DEPLOY (Render)
+  # ─────────────────────────────────────────
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          curl --fail -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Deployment triggered
+        run: echo "Render deployment triggered successfully!"

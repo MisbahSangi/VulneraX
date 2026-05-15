@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>VulneraX Vulnerability Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --bg-primary: #020617;
+            --bg-secondary: #0f172a;
+            --bg-card: #0f172a;
+            --bg-input: #020617;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --border-color: #1f2937;
+            --accent:  #3b82f6;
+            --log-text: #4ade80;
+            --check-label: #e5e7eb;
+        }
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary:  #475569;
+            --text-muted:  #64748b;
+            --border-color:  #e2e8f0;
+            --accent:  #3b82f6;
+            --log-text: #047857;
+            --check-label: #1e293b;
+        }
+        body {
+            background:  var(--bg-primary);
+            font-family: system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+        .navbar {
+            background: var(--bg-secondary);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .navbar-brand {
+            color: var(--text-primary) !important;
+            font-weight: 600;
+        }
+        .theme-toggle {
+            background: transparent;
+            border:  1px solid var(--border-color);
+            color:  var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+        }
+        .scanner-card {
+            margin-top: 25px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+        }
+        .scanner-header {
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+        }
+        .scanner-header h5 {
+            font-weight: 600;
+            margin:  0;
+            color: var(--text-primary);
+        }
+        .scanner-header small {
+            color:  var(--text-secondary);
+        }
+        .form-control, .form-select {
+            background-color: var(--bg-input);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color:  var(--accent);
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+        }
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+        .form-select option {
+            background:  var(--bg-input);
+            color: var(--text-primary);
+        }
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        /* Fixed checkbox label visibility */
+        .form-check-label {
+            color: var(--check-label) !important;
+            font-size: 0.86rem;
+        }
+        .form-check-input:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+        .form-check-input {
+            border-color: var(--border-color);
+        }
+        .checks-box {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+        }
+        .severity-cards {
+            display:  flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .severity-card {
+            flex: 1;
+            min-width:  80px;
+            padding: 14px 10px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+        }
+        .severity-card.critical { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+        .severity-card.high { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .severity-card.medium { background: linear-gradient(135deg, #eab308, #ca8a04); }
+        .severity-card.low { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .severity-card.info { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .severity-card .count { font-size:  1.8rem; line-height: 1; }
+        .severity-card .label { font-size: 0.7rem; text-transform: uppercase; opacity: 0.9; }
+        .stats-row {
+            display:  flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .stat-card .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color:  var(--accent);
+        }
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .scan-visualization {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+        .scan-checks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .check-item {
+            padding: 8px 4px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.7rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+        .check-item.active {
+            background:  var(--accent);
+            border-color: var(--accent);
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        .check-item.completed {
+            background:  #22c55e;
+            border-color:  #22c55e;
+            color:  white;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .progress {
+            background: var(--border-color);
+            border-radius: 10px;
+            height: 24px;
+        }
+        #scan-progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #0ea5e9);
+            border-radius:  10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        .time-remaining {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            text-align: center;
+        }
+        /* Fixed scan log visibility for both themes */
+        #scan-log {
+            background-color: var(--bg-input);
+            color: var(--log-text);
+            font-family: monospace;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        .table {
+            color: var(--text-primary);
+        }
+        .table thead th {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: var(--accent);
+            padding: 10px 8px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .table thead th:hover {
+            background:  var(--border-color);
+        }
+        .table thead th .sort-icon {
+            margin-left: 3px;
+            opacity: 0.4;
+            font-size: 0.7rem;
+        }
+        .table thead th.sorted .sort-icon {
+            opacity: 1;
+        }
+        .table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .table tbody tr:hover {
+            background: rgba(59,130,246,0.08);
+        }
+        .table td {
+            border-color: var(--border-color);
+            padding: 10px 8px;
+            vertical-align: middle;
+        }
+        .severity-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight:  600;
+            text-transform: uppercase;
+        }
+        .severity-badge.critical { background: #dc2626; color: white; }
+        .severity-badge.high { background: #f97316; color: white; }
+        .severity-badge.medium { background: #eab308; color: #000; }
+        .severity-badge.low { background: #3b82f6; color: white; }
+        .severity-badge.info { background: #22c55e; color: white; }
+        .evidence-cell {
+            cursor: pointer;
+        }
+        .evidence-short {
+            display: inline;
+        }
+        .evidence-full {
+            display:  none;
+            margin-top: 10px;
+            padding: 10px;
+            background:  var(--bg-input);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .evidence-full.show {
+            display:  block;
+        }
+        .remediation-tip {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(34,197,94,0.1);
+            border-left: 3px solid #22c55e;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.82rem;
+        }
+        .remediation-tip strong {
+            color:  #22c55e;
+        }
+        .select-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .card {
+            background: var(--bg-card);
+            border:  1px solid var(--border-color);
+            border-radius: 12px;
+        }
+        .card-header {
+            background: var(--bg-secondary) !important;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 12px 12px 0 0 ! important;
+            padding: 12px 16px;
+        }
+        .card-header h6 {
+            color: var(--accent);
+            font-weight: 600;
+            margin: 0;
+        }
+        .card-body {
+            background: var(--bg-card);
+        }
+        .list-group-item {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        .list-group-item:hover {
+            background: rgba(59,130,246,0.08);
+        }
+        .list-group-item small.text-muted {
+            color: var(--text-secondary) !important;
+        }
+        .badge.bg-secondary {
+            background:  linear-gradient(135deg, #3b82f6, #2563eb) !important;
+        }
+        .filter-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .filter-section label {
+            color: var(--accent);
+            font-size: 0.8rem;
+        }
+        .btn-primary {
+            background:  linear-gradient(90deg, #3b82f6, #2563eb);
+            border: none;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+        }
+        .btn-danger {
+            background:  linear-gradient(90deg, #dc2626, #b91c1c);
+            border: none;
+        }
+        .btn-outline-light {
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .btn-outline-light:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        hr {
+            border-color: var(--border-color);
+            opacity: 0.4;
+        }
+        code {
+            background:  rgba(59,130,246,0.15);
+            padding:  2px 6px;
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 0.85rem;
+        }
+        #chart-container, #stacked-chart-container, #trend-chart-container {
+            height: 160px;
+            margin-bottom: 15px;
+        }
+        .chart-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color:  var(--accent);
+            margin-bottom: 6px;
+        }
+        .results-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .results-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .badge-findings {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            font-size: 0.8rem;
+            padding: 5px 10px;
+        }
+        .footer-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        #page-info {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        @media (max-width: 768px) {
+            .scan-checks-grid { grid-template-columns: repeat(3, 1fr); }
+            .severity-cards { flex-wrap: wrap; }
+            .severity-card { min-width: 45%; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">🛡️VulneraX Vulnerability Scanner</a>
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+                <i class="bi bi-moon-fill" id="theme-icon"></i>
+            </button>
+        </div>
+    </nav>
+    <div class="container pb-5">
+        <div class="stats-row mt-3">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-total-scans">0</div>
+                <div class="stat-label">Total Scans</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-avg-findings">0</div>
+                <div class="stat-label">Avg Findings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-common-vuln">-</div>
+                <div class="stat-label">Most Common</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-last-scan">-</div>
+                <div class="stat-label">Last Scan</div>
+            </div>
+        </div>
+        <div class="card scanner-card">
+            <div class="scanner-header">
+                <h5>Scan a Web Application</h5>
+                <small>Enter a target URL to perform a security scan</small>
+            </div>
+            <div class="card-body">
+                {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+                <form id="scan-form" class="row g-3">
+                    <div class="col-12 col-md-8">
+                        <label for="target_url" class="form-label">Target URL</label>
+                        <input type="text" id="target_url" name="target_url" class="form-control" placeholder="https://example.com" required value="{{ target_url if target_url else '' }}">
+                    </div>
+                    <div class="col-6 col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100" id="scan-button">
+                            <span id="scan-button-text">Start Scan</span>
+                            <span id="scan-button-spinner" class="spinner-border spinner-border-sm d-none ms-1"></span>
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger w-100 d-none" id="cancel-scan-btn">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label mb-1">Enabled Checks</label>
+                        <div class="checks-box">
+                            <div class="row row-cols-2 row-cols-md-5 g-2">
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_xss" name="check_xss" {% if checks.xss %}checked{% endif %}><label class="form-check-label" for="check_xss">XSS</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_sqli" name="check_sqli" {% if checks.sqli %}checked{% endif %}><label class="form-check-label" for="check_sqli">SQL Injection</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_security_headers" name="check_security_headers" {% if checks.security_headers %}checked{% endif %}><label class="form-check-label" for="check_security_headers">Headers</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_csrf" name="check_csrf" {% if checks.csrf %}checked{% endif %}><label class="form-check-label" for="check_csrf">CSRF</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_directory_listing" name="check_directory_listing" {% if checks.directory_listing %}checked{% endif %}><label class="form-check-label" for="check_directory_listing">Dir Listing</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_weak_tls" name="check_weak_tls" {% if checks. weak_tls %}checked{% endif %}><label class="form-check-label" for="check_weak_tls">Weak TLS</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_open_redirect" name="check_open_redirect" {% if checks. open_redirect %}checked{% endif %}><label class="form-check-label" for="check_open_redirect">Redirect</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_sensitive_info" name="check_sensitive_info" {% if checks.sensitive_info %}checked{% endif %}><label class="form-check-label" for="check_sensitive_info">Sensitive</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_clickjacking" name="check_clickjacking" {% if checks. clickjacking %}checked{% endif %}><label class="form-check-label" for="check_clickjacking">Clickjacking</label></div></div>
+                                <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" id="check_cookie_security" name="check_cookie_security" {% if checks. cookie_security %}checked{% endif %}><label class="form-check-label" for="check_cookie_security">Cookies</label></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label for="severity_filter" class="form-label mb-1">Severity Filter</label>
+                        <select id="severity_filter" name="severity_filter" class="form-select form-select-sm">
+                            <option value="all" selected>All severities</option>
+                            <option value="high_critical">High & Critical</option>
+                            <option value="medium_plus">Medium+</option>
+                        </select>
+                    </div>
+                </form>
+                <p class="mt-2 footer-note">For educational use only. Scan only websites you own or have permission to test.</p>
+                <div class="scan-visualization d-none" id="scan-visualization">
+                    <label class="form-label mb-2">Scanning Progress</label>
+                    <div class="scan-checks-grid" id="scan-checks-grid">
+                        <div class="check-item" data-check="init">Init</div>
+                        <div class="check-item" data-check="discover">Discover</div>
+                        <div class="check-item" data-check="weak_tls">TLS</div>
+                        <div class="check-item" data-check="security_headers">Headers</div>
+                        <div class="check-item" data-check="clickjacking">Clickjack</div>
+                        <div class="check-item" data-check="cookie_security">Cookies</div>
+                        <div class="check-item" data-check="csrf">CSRF</div>
+                        <div class="check-item" data-check="directory_listing">DirList</div>
+                        <div class="check-item" data-check="open_redirect">Redirect</div>
+                        <div class="check-item" data-check="sensitive_info">Sensitive</div>
+                        <div class="check-item" data-check="xss">XSS</div>
+                        <div class="check-item" data-check="sqli">SQLi</div>
+                        <div class="check-item" data-check="report">Report</div>
+                        <div class="check-item" data-check="done">Done</div>
+                    </div>
+                    <div class="progress">
+                        <div id="scan-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">
+                            <span id="scan-progress-text">Starting... </span>
+                        </div>
+                    </div>
+                    <div class="time-remaining" id="time-remaining">Estimated time:  calculating...</div>
+                </div>
+                <div class="mt-3">
+                    <label class="form-label mb-1">Scan Log</label>
+                    <pre id="scan-log" class="p-2" style="max-height: 120px; overflow-y: auto;"></pre>
+                </div>
+                <hr class="mt-4">
+                <div class="severity-cards" id="severity-cards">
+                    <div class="severity-card critical"><div class="count" id="sev-critical">0</div><div class="label">Critical</div></div>
+                    <div class="severity-card high"><div class="count" id="sev-high">0</div><div class="label">High</div></div>
+                    <div class="severity-card medium"><div class="count" id="sev-medium">0</div><div class="label">Medium</div></div>
+                    <div class="severity-card low"><div class="count" id="sev-low">0</div><div class="label">Low</div></div>
+                    <div class="severity-card info"><div class="count" id="sev-info">0</div><div class="label">Info</div></div>
+                </div>
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <div>
+                        <h5 class="mb-1 results-title">Results for <code id="results-target">{{ target_url or '' }}</code></h5>
+                        <small class="results-meta" id="results-meta">No scan results yet.  Start a scan to see findings.</small>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <span class="badge badge-findings text-white" id="findings-badge">0 findings</span>
+                        <a href="/download-report" class="btn btn-outline-light btn-sm"><i class="bi bi-file-pdf"></i> PDF</a>
+                        <button class="btn btn-outline-light btn-sm" id="export-selected-btn" disabled><i class="bi bi-download"></i> Export (<span id="selected-count">0</span>)</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-4">
+                        <div class="chart-title">By Type</div>
+                        <div id="chart-container"><canvas id="findingsChart"></canvas></div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="chart-title">By Severity</div>
+                        <div id="stacked-chart-container"><canvas id="stackedSeverityChart"></canvas></div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="chart-title">Trend</div>
+                        <div id="trend-chart-container"><canvas id="trendChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-6 col-md-3">
+                            <label for="type_filter" class="form-label mb-1">Type</label>
+                            <select id="type_filter" class="form-select form-select-sm"><option value="all">All types</option></select>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label for="search_box" class="form-label mb-1">Search</label>
+                            <input type="text" id="search_box" class="form-control form-control-sm" placeholder="Filter... ">
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-outline-light btn-sm flex-grow-1" id="prev-page-btn">←</button>
+                                <button class="btn btn-outline-light btn-sm flex-grow-1" id="next-page-btn">→</button>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 text-end"><span id="page-info"></span></div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="findings-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 35px"><input type="checkbox" class="select-checkbox" id="select-all"></th>
+                                <th data-sort="type">Type <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                                <th data-sort="url">URL <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                                <th data-sort="severity">Severity <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                                <th>Evidence & Remediation</th>
+                            </tr>
+                        </thead>
+                        <tbody id="findings-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card mt-4" id="recent-scans-card">
+            <div class="card-header"><h6><i class="bi bi-clock-history"></i> Recent Scans</h6></div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush" id="recent-scans-list">
+                    {% if history %}
+                    {% for item in history %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div><strong>{{ item. target }}</strong><br><small class="text-muted">{{ item.timestamp }}</small></div>
+                        <span class="badge bg-secondary">{{ item.summary }}</span>
+                    </li>
+                    {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="text-center mt-4 footer-note">Prepared By VulneraX Team</div>
+    </div>
+    <audio id="notification-sound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+    </audio>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/main.js? v=10"></script>
+</body>
+</html>
