@@ -1,6 +1,6 @@
 Deployment URL: https://ygjygfgb-vulnerax.hf.space
 
-Platform: Render (hugging face)
+Platform: Hugging Face
 Service Type: Web Service (Python / FastAPI)
 Auto-deploy: Enabled on push to main branch via GitHub Actions
 
