@@ -113,7 +113,7 @@ jobs:
         run: |
           git config --global user.email "misbah@vulnerax.com"
           git config --global user.name "MisbahSangi"
-          git push https://MisbahSangi:$HF_TOKEN@huggingface.co/spaces/MisbahSangi/VulneraX main --force
+          git push https://ygjygfgb:$HF_TOKEN@huggingface.co/spaces/ygjygfgb/Vulnerax main --force
 
       - name: Deployment Complete
         run: echo "Hugging Face Spaces deployment triggered!"
